@@ -7,9 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FileServerManager.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("[controller]")]
     public class ServerController : ControllerBase
     {
+
     }
 }

@@ -46,10 +46,10 @@ namespace UserManagementServer.Services
             return _context.Users.Find(id);
         }
 
-        //public User GetByName(string name)
-        //{
-        //    return _context.Users.FirstOrDefault(u => u.UserName == name);
-        //}
+        public User GetByName(string name)
+        {
+            return _context.Users.FirstOrDefault(u => u.UserName == name);
+        }
 
         public User Create(User user, string password)
         {
