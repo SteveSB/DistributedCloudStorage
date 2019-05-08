@@ -33,7 +33,6 @@ namespace UserManagementServer.Controllers
             _appSettings = appSettings.Value;
         }
 
-        [AllowAnonymous]
         [HttpPost("authenticate")]
         public IActionResult Authenticate([FromBody]UserDto userDto)
         {
@@ -42,27 +41,12 @@ namespace UserManagementServer.Controllers
             if (user == null)
                 return BadRequest(new { message = "Username or password is incorrect" });
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                    new Claim(ClaimTypes.Name, user.Id.ToString())
-                }),
-                Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            var tokenString = tokenHandler.WriteToken(token);
-
-            // return basic user info (without password) and token to store client side
             return Ok(new
             {
-                user.Id,
-                user.UserName,
-                Token = tokenString
+                user
             });
+
+            //return GenerateToken(userDto.UserName);
         }
 
         [AllowAnonymous]
@@ -76,7 +60,18 @@ namespace UserManagementServer.Controllers
             {
                 // save 
                 user = _userService.Create(user, userDto.Password);
-                return Ok(user);
+
+                // generate token
+                var Token = GenerateToken(user.UserName);
+
+                // return basic user info (without password) and token to store client side
+                return Ok(new
+                {
+                    user.Id,
+                    user.UserName,
+                    Token
+                });
+
             }
             catch (Exception ex)
             {
@@ -85,6 +80,7 @@ namespace UserManagementServer.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpPost("login")]
         public IActionResult Login([FromBody]UserDto userDto)
         {
@@ -92,9 +88,42 @@ namespace UserManagementServer.Controllers
             //    return BadRequest(new { message = "Error Logging In!" });
 
             // map dto to entity
-            var user = _userService.GetByName(userDto.UserName);
+            //var user = _userService.GetByName(userDto.UserName);
 
-            return Ok(user);
+            var user = _userService.Authenticate(userDto.UserName, userDto.Password);
+
+            if (user == null)
+                return BadRequest(new { message = "Username or password is incorrect" });
+
+            // generate token
+            var Token = GenerateToken(user.UserName);
+
+            // return basic user info (without password) and token to store client side
+            return Ok(new
+            {
+                user.Id,
+                user.UserName,
+                Token
+            });
+        }
+
+        private string GenerateToken(string userName)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(ClaimTypes.Name, userName)
+                }),
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var tokenString = tokenHandler.WriteToken(token);
+
+            return tokenString;
         }
 
         //[HttpGet("{id}")]

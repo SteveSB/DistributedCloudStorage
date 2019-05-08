@@ -24,7 +24,7 @@ namespace UserManagementServer.Services
 
             var user = _context.Users.SingleOrDefault(x => x.UserName == username);
 
-            // check if username exists
+            // check if user exists
             if (user == null)
                 return null;
 
