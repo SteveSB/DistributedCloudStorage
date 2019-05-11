@@ -1,0 +1,9 @@
+Backend:
+	1. Save file information in database.
+	2. Mutiple FileServers.
+	3. Distribute files over FileServers based on their sizes.
+	4. The functionality to create FileServers Dynamicly.
+	5. Upload File in FileServer, send its information only via APIGateway and FileServerManager.
+
+Frontend:
+	Nothing yet..

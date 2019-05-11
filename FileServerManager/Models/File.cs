@@ -16,6 +16,8 @@ namespace FileServerManager.Models
         public double Size { get; set; }
         [Required]
         public string Owner { get; set; }
+        [Required]
+        public string Path { get; set; }
         [DefaultValue(false)]
         public bool HasBackup { get; set; }
 
