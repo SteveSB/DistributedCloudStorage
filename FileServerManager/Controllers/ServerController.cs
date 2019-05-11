@@ -16,10 +16,10 @@ namespace FileServerManager.Controllers
         }
 
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadTask()
+        public async Task<IActionResult> UploadTask([FromForm] string userName)
         {
             var form = Request.Form;
-            var result = await _serverService.UploadFile(form.Files, form.Keys);
+            var result = await _serverService.UploadFile(form.Files, userName);
 
             if (result == null)
                 BadRequest(new { message = "Error, Make sure you've uploaded a valid file!" });

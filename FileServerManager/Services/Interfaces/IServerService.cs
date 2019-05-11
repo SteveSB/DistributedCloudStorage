@@ -9,6 +9,6 @@ namespace FileServerManager.Services.Interfaces
     public interface IServerService
     {
         Task<File> GetFilePath(int id);
-        Task<IActionResult> UploadFile(IFormFileCollection form, ICollection<string> formKeys);
+        Task<IActionResult> UploadFile(IFormFileCollection form, string userName);
     }
 }

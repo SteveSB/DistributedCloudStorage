@@ -21,7 +21,7 @@ namespace FileServerManager.Services
             _context = context;
         }
 
-        public async Task<IActionResult> UploadFile(IFormFileCollection files, ICollection<string> formKeys)
+        public async Task<IActionResult> UploadFile(IFormFileCollection files, string userName)
         {
             if (files == null || files.Count == 0)
                 return null;
@@ -47,7 +47,7 @@ namespace FileServerManager.Services
                     if (result == null)
                         return null;
 
-                    UpdateDatabase(fileSize, file.FileName, formKeys.Single(k => k == "UserName"));
+                    UpdateDatabase(fileSize, file.FileName, userName);
                 }
             }
             return new JsonResult(new { message = "File created successfully!" });
@@ -62,7 +62,7 @@ namespace FileServerManager.Services
             {
                 Name = fileName,
                 Size = fileSize,
-                Path = StaticRef.Server1FilesSavePath,
+                Path = StaticRef.Server1FilesSavePath + fileName,
                 ServerId = server.Id,
                 HasBackup = false,
                 Owner = userName
