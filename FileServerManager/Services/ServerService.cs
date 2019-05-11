@@ -1,10 +1,13 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using FileServerManager.Helpers;
 using FileServerManager.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using File = FileServerManager.Models.File;
 
 namespace FileServerManager.Services
@@ -18,7 +21,7 @@ namespace FileServerManager.Services
             _context = context;
         }
 
-        public async Task<IActionResult> UploadFile(IFormFileCollection files)
+        public async Task<IActionResult> UploadFile(IFormFileCollection files, ICollection<string> formKeys)
         {
             if (files == null || files.Count == 0)
                 return null;
@@ -27,9 +30,13 @@ namespace FileServerManager.Services
             {
                 using (var client = new HttpClient())
                 {
+                    int fileSize = 0;
                     byte[] data;
                     using (var br = new BinaryReader(file.OpenReadStream()))
-                        data = br.ReadBytes((int)file.OpenReadStream().Length);
+                    {
+                        fileSize = (int) file.OpenReadStream().Length;
+                        data = br.ReadBytes(fileSize);
+                    }
 
                     var bytes = new ByteArrayContent(data);
 
@@ -39,9 +46,29 @@ namespace FileServerManager.Services
 
                     if (result == null)
                         return null;
+
+                    UpdateDatabase(fileSize, file.FileName, formKeys.Single(k => k == "UserName"));
                 }
             }
             return new JsonResult(new { message = "File created successfully!" });
+        }
+
+        private void UpdateDatabase(int fileSize, string fileName, string userName)
+        {
+            var server = _context.Servers.OrderBy(s => s.Size).First();
+            server.Size += fileSize;
+
+            _context.Files.Add(new File
+            {
+                Name = fileName,
+                Size = fileSize,
+                Path = StaticRef.Server1FilesSavePath,
+                ServerId = server.Id,
+                HasBackup = false,
+                Owner = userName
+            });
+
+            _context.SaveChanges();
         }
 
         public async Task<File> GetFilePath(int id)
