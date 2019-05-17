@@ -1,14 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using FileServerManager.Helpers;
+using FileServerManager.Models;
 using FileServerManager.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using File = FileServerManager.Models.File;
 
 namespace FileServerManager.Services
 {
@@ -21,59 +16,50 @@ namespace FileServerManager.Services
             _context = context;
         }
 
-        public async Task<IActionResult> UploadFile(IFormFileCollection files, string userName)
+        public async Task<List<File>> GetAllFiles(string userName)
         {
-            if (files == null || files.Count == 0)
-                return null;
-
-            foreach (var file in files)
-            {
-                using (var client = new HttpClient())
-                {
-                    int fileSize = 0;
-                    byte[] data;
-                    using (var br = new BinaryReader(file.OpenReadStream()))
-                    {
-                        fileSize = (int) file.OpenReadStream().Length;
-                        data = br.ReadBytes(fileSize);
-                    }
-
-                    var bytes = new ByteArrayContent(data);
-
-                    var multiContent = new MultipartFormDataContent { { bytes, "file", file.FileName } };
-
-                    var result = await client.PostAsync(ApiHelper.Upload, multiContent);
-
-                    if (result == null)
-                        return null;
-
-                    UpdateDatabase(fileSize, file.FileName, userName);
-                }
-            }
-            return new JsonResult(new { message = "File created successfully!" });
+            return await Task.Run(() => _context.Files.Where(f => f.Owner == userName).ToList());
         }
 
-        private void UpdateDatabase(int fileSize, string fileName, string userName)
+        public async Task<int> ChooseServerPort(string fileName, string size, string userName)
         {
+            var fileSize = int.Parse(size);
+            var server = await UpdateDatabase(fileSize, fileName, userName);
+
+            if (server == null)
+                return 0;
+
+            return server.Id == 1 ? StaticRef.Server1Port : StaticRef.Server2Port;
+        }
+
+        public async Task<File> GetFile(int id)
+        {
+            return await _context.Files.FindAsync(id);
+        }
+
+        private async Task<Server> UpdateDatabase(int fileSize, string fileName, string userName)
+        {
+            if (_context.Files.SingleOrDefault(f => f.Name.Contains(fileName)) != null)
+                return null;
+
             var server = _context.Servers.OrderBy(s => s.Size).First();
             server.Size += fileSize;
+
+            var basePath = server.Id == 1 ? StaticRef.Server1FilesSavePath : StaticRef.Server2FilesSavePath;
 
             _context.Files.Add(new File
             {
                 Name = fileName,
                 Size = fileSize,
-                Path = StaticRef.Server1FilesSavePath + fileName,
+                Path = basePath + userName + "\\" + fileName,
                 ServerId = server.Id,
                 HasBackup = false,
                 Owner = userName
             });
 
-            _context.SaveChanges();
-        }
+            await _context.SaveChangesAsync();
 
-        public async Task<File> GetFilePath(int id)
-        {
-            return await _context.Files.FindAsync(id);
+            return server;
         }
     }
 }

@@ -8,7 +8,8 @@ namespace FileServerManager.Services.Interfaces
 {
     public interface IServerService
     {
-        Task<File> GetFilePath(int id);
-        Task<IActionResult> UploadFile(IFormFileCollection form, string userName);
+        Task<List<File>> GetAllFiles(string userName);
+        Task<File> GetFile(int id);
+        Task<int> ChooseServerPort(string fileName, string fileSize, string userName);
     }
 }

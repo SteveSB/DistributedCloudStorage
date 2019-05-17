@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using FileServer.Services.Interfaces;
+using FileServer2.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace FileServer.Controllers
+namespace FileServer2.Controllers
 {
     [Route("[controller]")]
     [ApiController]
@@ -27,7 +27,7 @@ namespace FileServer.Controllers
             foreach (var file in form.Files)
             {
                 if (file.Length <= 0) continue;
-                using (var stream = new FileStream("Files\\Uploads\\" + file.FileName, FileMode.Create))
+                using (var stream = new FileStream("Files\\" /*+ userName + "\\"*/ + file.FileName, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
                 }

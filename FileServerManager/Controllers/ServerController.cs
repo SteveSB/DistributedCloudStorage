@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using FileServerManager.Helpers;
 using FileServerManager.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,14 +16,24 @@ namespace FileServerManager.Controllers
             _serverService = serverService;
         }
 
-        [HttpPost("upload")]
-        public async Task<IActionResult> UploadTask([FromForm] string userName)
+        [HttpPost("getAll")]
+        public async Task<IActionResult> GetAllFilesTask([FromBody] string userName)
         {
-            var form = Request.Form;
-            var result = await _serverService.UploadFile(form.Files, userName);
+            var result = await _serverService.GetAllFiles(userName);
 
             if (result == null)
-                BadRequest(new { message = "Error, Make sure you've uploaded a valid file!" });
+                return BadRequest(new { message = "Error downloading file!" });
+
+            return Ok(result);
+        }
+
+        [HttpPost("getServerPort")]
+        public async Task<IActionResult> ServerPortTask([FromBody] ServerPortRequestDto serverPortRequest)
+        {
+            var result = await _serverService.ChooseServerPort(serverPortRequest.FileName, serverPortRequest.FileSize, serverPortRequest.UserName);
+
+            if (result == 0)
+                return BadRequest(new { message = "Error downloading file!" });
 
             return Ok(result);
         }
@@ -30,7 +41,11 @@ namespace FileServerManager.Controllers
         [HttpPost("download")]
         public async Task<IActionResult> DownloadTask([FromBody] int fileId)
         {
-            var file = await _serverService.GetFilePath(fileId);
+            var file = await _serverService.GetFile(fileId);
+
+            if (file == null)
+                return BadRequest(new { message = "Error downloading file!" });
+
             return Ok(file.Path);
         }
     }

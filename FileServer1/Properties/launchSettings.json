@@ -16,7 +16,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "FileServer": {
+    "FileServer1": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "api/values",

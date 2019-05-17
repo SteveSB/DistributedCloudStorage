@@ -7,6 +7,7 @@ namespace FileServerManager.Helpers
 {
     public class ApiHelper
     {
-        public static string Upload { get; } = "http://localhost:53737/file/upload";
+        public static string UploadServer1 { get; } = "http://localhost:53737/file/upload";
+        public static string UploadServer2 { get; } = "http://localhost:53738/file/upload";
     }
 }

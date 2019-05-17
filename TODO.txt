@@ -1,6 +1,7 @@
 Backend:
-	1. Distribute files over multiple FileServers based on their sizes and the load on server.
-	2. Only send file information across the network.
+	1. Change download process to be like the upload process.
+	2. Create the file by user name when uploading the file.
+	3. Create a Backup file server.
 
 Frontend:
 	Nothing yet..
