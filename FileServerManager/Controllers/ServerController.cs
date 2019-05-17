@@ -1,15 +1,52 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using System.Threading.Tasks;
+using FileServerManager.Helpers;
+using FileServerManager.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FileServerManager.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("[controller]")]
     public class ServerController : ControllerBase
     {
+        private readonly IServerService _serverService;
+
+        public ServerController(IServerService serverService)
+        {
+            _serverService = serverService;
+        }
+
+        [HttpPost("getAll")]
+        public async Task<IActionResult> GetAllFilesTask([FromBody] string userName)
+        {
+            var result = await _serverService.GetAllFiles(userName);
+
+            if (result == null)
+                return BadRequest(new { message = "Error downloading file!" });
+
+            return Ok(result);
+        }
+
+        [HttpPost("getServerPort")]
+        public async Task<IActionResult> ServerPortTask([FromBody] ServerPortRequestDto serverPortRequest)
+        {
+            var result = await _serverService.ChooseServerPort(serverPortRequest.FileName, serverPortRequest.FileSize, serverPortRequest.UserName);
+
+            if (result == 0)
+                return BadRequest(new { message = "Error downloading file!" });
+
+            return Ok(result);
+        }
+
+        [HttpPost("download")]
+        public async Task<IActionResult> DownloadTask([FromBody] int fileId)
+        {
+            var file = await _serverService.GetFile(fileId);
+
+            if (file == null)
+                return BadRequest(new { message = "Error downloading file!" });
+
+            return Ok(file.Path);
+        }
     }
 }

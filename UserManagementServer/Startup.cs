@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -11,8 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using UserManagementServer.Helpers;
 using UserManagementServer.Services;
@@ -37,7 +32,7 @@ namespace UserManagementServer
             var connectionString = "Server=(localdb)\\MSSQLLocalDB;Database=UserManagementDB;Trusted_Connection=True;MultipleActiveResultSets=true";
             services.AddDbContext<DataContext>(options => options.UseSqlServer(connectionString));
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2); ;
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             // Auto Mapper Configurations
             var mappingConfig = new MapperConfiguration(mc =>
@@ -67,8 +62,8 @@ namespace UserManagementServer
                     OnTokenValidated = context =>
                     {
                         var userService = context.HttpContext.RequestServices.GetRequiredService<IUserService>();
-                        var userId = int.Parse(context.Principal.Identity.Name);
-                        var user = userService.GetById(userId);
+                        var userName = context.Principal.Identity.Name;
+                        var user = userService.GetByName(userName);
                         if (user == null)
                         {
                             // return unauthorized if user no longer exists

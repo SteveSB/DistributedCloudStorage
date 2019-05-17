@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -13,6 +14,7 @@ using UserManagementServer.Services.Interfaces;
 
 namespace UserManagementServer.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class UserController : ControllerBase
@@ -31,6 +33,23 @@ namespace UserManagementServer.Controllers
             _appSettings = appSettings.Value;
         }
 
+        [HttpPost("authenticate")]
+        public IActionResult Authenticate([FromBody]UserDto userDto)
+        {
+            var user = _userService.Authenticate(userDto.UserName, userDto.Password);
+
+            if (user == null)
+                return BadRequest(new { message = "Username or password is incorrect" });
+
+            return Ok(new
+            {
+                user
+            });
+
+            //return GenerateToken(userDto.UserName);
+        }
+
+        [AllowAnonymous]
         [HttpPost("register")]
         public IActionResult Register([FromBody]UserDto userDto)
         {
@@ -40,13 +59,19 @@ namespace UserManagementServer.Controllers
             try
             {
                 // save 
-                _userService.Create(user, userDto.Password);
+                user = _userService.Create(user, userDto.Password);
+
+                // generate token
+                var Token = GenerateToken(user.UserName);
+
+                // return basic user info (without password) and token to store client side
                 return Ok(new
                 {
                     user.Id,
                     user.UserName,
-                    Token = GenerateToken(user)
+                    Token
                 });
+
             }
             catch (Exception ex)
             {
@@ -55,21 +80,50 @@ namespace UserManagementServer.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpPost("login")]
         public IActionResult Login([FromBody]UserDto userDto)
         {
-            if (!IsAuthenticated(userDto))
-                return BadRequest(new { message = "Error Logging In!" });
+            //if (!IsAuthenticated(userDto))
+            //    return BadRequest(new { message = "Error Logging In!" });
 
             // map dto to entity
-            var user = _mapper.Map<User>(userDto);
+            //var user = _userService.GetByName(userDto.UserName);
 
+            var user = _userService.Authenticate(userDto.UserName, userDto.Password);
+
+            if (user == null)
+                return BadRequest(new { message = "Username or password is incorrect" });
+
+            // generate token
+            var Token = GenerateToken(user.UserName);
+
+            // return basic user info (without password) and token to store client side
             return Ok(new
             {
                 user.Id,
                 user.UserName,
-                Token = GenerateToken(user)
+                Token
             });
+        }
+
+        private string GenerateToken(string userName)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(ClaimTypes.Name, userName)
+                }),
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var tokenString = tokenHandler.WriteToken(token);
+
+            return tokenString;
         }
 
         //[HttpGet("{id}")]
@@ -106,35 +160,5 @@ namespace UserManagementServer.Controllers
         //    _userService.Delete(id);
         //    return Ok();
         //}
-
-        private bool IsAuthenticated([FromBody]UserDto userDto)
-        {
-            var user = _userService.Authenticate(userDto.UserName, userDto.Password);
-
-            if (user == null)
-                return false;
-
-            return true;
-        }
-
-        private string GenerateToken(User user)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                    new Claim(ClaimTypes.Name, user.Id.ToString())
-                }),
-                Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            var tokenString = tokenHandler.WriteToken(token);
-
-            // return basic user info (without password) and token to store client side
-            return tokenString;
-        }
     }
 }

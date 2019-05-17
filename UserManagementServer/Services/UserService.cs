@@ -24,7 +24,7 @@ namespace UserManagementServer.Services
 
             var user = _context.Users.SingleOrDefault(x => x.UserName == username);
 
-            // check if username exists
+            // check if user exists
             if (user == null)
                 return null;
 
@@ -46,10 +46,10 @@ namespace UserManagementServer.Services
             return _context.Users.Find(id);
         }
 
-        //public User GetByName(string name)
-        //{
-        //    return _context.Users.FirstOrDefault(u => u.UserName == name);
-        //}
+        public User GetByName(string name)
+        {
+            return _context.Users.FirstOrDefault(u => u.UserName == name);
+        }
 
         public User Create(User user, string password)
         {
