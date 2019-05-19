@@ -1,7 +1,5 @@
 Backend:
-	1. Change download process to be like the upload process.
-	2. Create the file by user name when uploading the file.
-	3. Create a Backup file server.
+	1. Files/Folders hierarchy.
 
 Frontend:
 	Nothing yet..

@@ -21,15 +21,16 @@ namespace FileServerManager.Services
             return await Task.Run(() => _context.Files.Where(f => f.Owner == userName).ToList());
         }
 
-        public async Task<int> ChooseServerPort(string fileName, string size, string userName)
+        public async Task<ServerPortResponse> ChooseServerPort(string fileName, string size, string userName)
         {
             var fileSize = int.Parse(size);
-            var server = await UpdateDatabase(fileSize, fileName, userName);
+            var file = await UpdateDatabase(fileSize, fileName, userName);
 
-            if (server == null)
-                return 0;
-
-            return server.Id == 1 ? StaticRef.Server1Port : StaticRef.Server2Port;
+            return new ServerPortResponse
+            {
+                ServerPort = ((file.ServerId == 1) ? StaticRef.Server1Port : StaticRef.Server2Port),
+                BackupServerPort = ((file.BackupServer == 1) ? StaticRef.Server1Port : StaticRef.Server2Port)
+            };
         }
 
         public async Task<File> GetFile(int id)
@@ -37,7 +38,7 @@ namespace FileServerManager.Services
             return await _context.Files.FindAsync(id);
         }
 
-        private async Task<Server> UpdateDatabase(int fileSize, string fileName, string userName)
+        private async Task<File> UpdateDatabase(int fileSize, string fileName, string userName)
         {
             if (_context.Files.SingleOrDefault(f => f.Name.Contains(fileName)) != null)
                 return null;
@@ -46,20 +47,24 @@ namespace FileServerManager.Services
             server.Size += fileSize;
 
             var basePath = server.Id == 1 ? StaticRef.Server1FilesSavePath : StaticRef.Server2FilesSavePath;
+            var backupPath = server.Id == 2 ? StaticRef.Server2FilesSavePath : StaticRef.Server1FilesSavePath;
 
-            _context.Files.Add(new File
+            var file = new File
             {
                 Name = fileName,
                 Size = fileSize,
                 Path = basePath + userName + "\\" + fileName,
                 ServerId = server.Id,
-                HasBackup = false,
+                BackupServer = (server.Id % 2) + 1,
+                BackupPath = backupPath + userName + "\\" + fileName,
                 Owner = userName
-            });
+            };
+
+            _context.Files.Add(file);
 
             await _context.SaveChangesAsync();
 
-            return server;
+            return file;
         }
     }
 }

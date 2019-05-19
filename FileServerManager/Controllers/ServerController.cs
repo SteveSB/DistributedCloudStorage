@@ -32,7 +32,7 @@ namespace FileServerManager.Controllers
         {
             var result = await _serverService.ChooseServerPort(serverPortRequest.FileName, serverPortRequest.FileSize, serverPortRequest.UserName);
 
-            if (result == 0)
+            if (result == null)
                 return BadRequest(new { message = "Error downloading file!" });
 
             return Ok(result);
@@ -41,12 +41,12 @@ namespace FileServerManager.Controllers
         [HttpPost("download")]
         public async Task<IActionResult> DownloadTask([FromBody] int fileId)
         {
-            var file = await _serverService.GetFile(fileId);
+            var result = await _serverService.GetFile(fileId);
 
-            if (file == null)
+            if (result == null)
                 return BadRequest(new { message = "Error downloading file!" });
 
-            return Ok(file.Path);
+            return Ok(result);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using FileServerManager.Helpers;
 using FileServerManager.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,6 @@ namespace FileServerManager.Services.Interfaces
     {
         Task<List<File>> GetAllFiles(string userName);
         Task<File> GetFile(int id);
-        Task<int> ChooseServerPort(string fileName, string fileSize, string userName);
+        Task<ServerPortResponse> ChooseServerPort(string fileName, string fileSize, string userName);
     }
 }

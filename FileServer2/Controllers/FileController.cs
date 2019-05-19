@@ -19,7 +19,7 @@ namespace FileServer2.Controllers
         }
 
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadFileAsync()
+        public async Task<IActionResult> UploadFileAsync(string userName)
         {
             if (!Request.HasFormContentType) return BadRequest();
 
@@ -27,7 +27,7 @@ namespace FileServer2.Controllers
             foreach (var file in form.Files)
             {
                 if (file.Length <= 0) continue;
-                using (var stream = new FileStream("Files\\" /*+ userName + "\\"*/ + file.FileName, FileMode.Create))
+                using (var stream = new FileStream("Files\\" + userName + "\\" + file.FileName, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
                 }

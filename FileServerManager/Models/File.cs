@@ -20,8 +20,10 @@ namespace FileServerManager.Models
         public string Owner { get; set; }
         [Required]
         public string Path { get; set; }
-        [DefaultValue(false)]
-        public bool HasBackup { get; set; }
+        [Required]
+        public int BackupServer { get; set; }
+        [Required]
+        public string BackupPath { get; set; }
 
         public virtual Server Server { get; set; }
     }
