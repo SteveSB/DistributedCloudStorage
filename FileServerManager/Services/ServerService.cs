@@ -33,9 +33,14 @@ namespace FileServerManager.Services
             };
         }
 
-        public async Task<File> GetFile(int id)
+        public async Task<ServerPortResponse> GetFile(int id)
         {
-            return await _context.Files.FindAsync(id);
+            var file = await _context.Files.FindAsync(id);
+            return new ServerPortResponse
+            {
+                ServerPort = ((file.ServerId == 1) ? StaticRef.Server1Port : StaticRef.Server2Port),
+                BackupServerPort = ((file.BackupServer == 1) ? StaticRef.Server1Port : StaticRef.Server2Port)
+            };
         }
 
         private async Task<File> UpdateDatabase(int fileSize, string fileName, string userName)
@@ -46,17 +51,17 @@ namespace FileServerManager.Services
             var server = _context.Servers.OrderBy(s => s.Size).First();
             server.Size += fileSize;
 
-            var basePath = server.Id == 1 ? StaticRef.Server1FilesSavePath : StaticRef.Server2FilesSavePath;
-            var backupPath = server.Id == 2 ? StaticRef.Server2FilesSavePath : StaticRef.Server1FilesSavePath;
+            var basePath = (server.Id == 1) ? StaticRef.Server1FilesSavePath : StaticRef.Server2FilesSavePath;
+            var backupPath = (server.Id == 2) ? StaticRef.Server1FilesSavePath : StaticRef.Server2FilesSavePath;
 
             var file = new File
             {
                 Name = fileName,
                 Size = fileSize,
-                Path = basePath + userName + "\\" + fileName,
+                Path = basePath + /*userName + "\\" + */fileName,
                 ServerId = server.Id,
                 BackupServer = (server.Id % 2) + 1,
-                BackupPath = backupPath + userName + "\\" + fileName,
+                BackupPath = backupPath + /*userName + "\\" + */fileName,
                 Owner = userName
             };
 

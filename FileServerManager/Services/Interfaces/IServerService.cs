@@ -10,7 +10,7 @@ namespace FileServerManager.Services.Interfaces
     public interface IServerService
     {
         Task<List<File>> GetAllFiles(string userName);
-        Task<File> GetFile(int id);
+        Task<ServerPortResponse> GetFile(int id);
         Task<ServerPortResponse> ChooseServerPort(string fileName, string fileSize, string userName);
     }
 }
