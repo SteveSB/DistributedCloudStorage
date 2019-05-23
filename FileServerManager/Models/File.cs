@@ -25,6 +25,9 @@ namespace FileServerManager.Models
         [Required]
         public string BackupPath { get; set; }
 
+        public int? FolderId { get; set; }
+
+        public virtual Folder Folder { get; set; }
         public virtual Server Server { get; set; }
     }
 }

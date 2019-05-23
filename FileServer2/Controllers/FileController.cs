@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using FileServer2.Services.Interfaces;
@@ -18,7 +19,7 @@ namespace FileServer2.Controllers
         }
 
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadFileAsync([FromForm] string userName)
+        public async Task<IActionResult> UploadFileAsync()
         {
             if (!Request.HasFormContentType) return BadRequest();
 
@@ -26,7 +27,7 @@ namespace FileServer2.Controllers
             foreach (var file in form.Files)
             {
                 if (file.Length <= 0) continue;
-                using (var stream = new FileStream("Files\\" + /*userName + "\\" + */file.FileName, FileMode.Create))
+                using (var stream = new FileStream("Files\\" + file.FileName, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
                 }
@@ -35,13 +36,20 @@ namespace FileServer2.Controllers
         }
 
         [HttpGet("download")]
-        public IActionResult DownloadFileAsync(string userName, string fileName)
+        public IActionResult DownloadFileAsync(string fileName)
         {
-            var net = new WebClient();
-            var data = net.DownloadData("Files\\" + /*userName + "\\" + */fileName);
-            var content = new MemoryStream(data);
-            var contentType = "APPLICATION/octet-stream";
-            return File(content, contentType, fileName);
+            try
+            {
+                var net = new WebClient();
+                var data = net.DownloadData("Files\\" + fileName);
+                var content = new MemoryStream(data);
+                var contentType = "APPLICATION/octet-stream";
+                return File(content, contentType, fileName);
+            }
+            catch (Exception)
+            {
+                return new JsonResult(new { message = "File Not Found!" });
+            }
         }
     }
 }

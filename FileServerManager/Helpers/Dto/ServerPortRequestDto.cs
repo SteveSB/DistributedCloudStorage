@@ -10,5 +10,6 @@ namespace FileServerManager.Helpers
         public string UserName { get; set; }
         public string FileName { get; set; }
         public string FileSize { get; set; }
+        public int folderId { get; set; }
     }
 }

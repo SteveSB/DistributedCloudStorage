@@ -1,5 +1,8 @@
 Backend:
-	1. Files/Folders hierarchy.
-
+	*getAllFiles accepts a folderId, zero if we target the root.*
+	*create file accepts a folderId, zero if we target the root.*
+	*create folder accepts folderId, zero if we target the root.*
+	*remove username from file server api.*
+	
 Frontend:
 	Nothing yet..

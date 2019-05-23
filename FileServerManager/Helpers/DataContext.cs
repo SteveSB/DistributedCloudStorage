@@ -8,6 +8,7 @@ namespace FileServerManager.Helpers
         public DataContext(DbContextOptions<DataContext> options) : base(options) { }
 
         public DbSet<File> Files { get; set; }
+        public DbSet<Folder> Folders { get; set; }
         public DbSet<Server> Servers { get; set; }
     }
 }
